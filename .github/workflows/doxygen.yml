@@ -11,12 +11,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Installer Doxygen
+    - name: Installer Doxygen et Graphviz
       run: sudo apt-get install -y doxygen graphviz
 
     - name: Générer la documentation Doxygen
-      run:  cd src && \
-            doxygen Doxyfile
+      run: |
+        cd src
+        /usr/bin/doxygen Doxyfile
 
     - name: Déployer la documentation sur GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
