@@ -1,29 +1,25 @@
-name: Doxygen
+name: Doxygen Docs
 
 on:
   push:
-    branches: [ main ]
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Installer Doxygen et Graphviz
-        run: sudo apt-get update && sudo apt-get install -y doxygen graphviz
+      - name: Setup Doxygen
+        run: sudo apt-get install -y doxygen graphviz
 
-      - name: Générer la documentation Doxygen
+      - name: Generate documentation
         run: |
           cd src
-          /usr/bin/doxygen Doxyfile
-          ls -R ../html
+          doxygen ../Doxyfile
 
       - name: Upload artifact for GitHub Pages
         uses: actions/upload-pages-artifact@v3
@@ -33,11 +29,15 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: Déployer sur GitHub Pages
+      - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
