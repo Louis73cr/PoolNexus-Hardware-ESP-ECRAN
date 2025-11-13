@@ -1,3 +1,15 @@
+/* **************************************************************************** */
+/*                                                                              */
+/*                                                  ::::    :::     ::::::::    */
+/*   Page.hpp                                       :+:+:   :+:    :+:    :+:   */
+/*                                                  :+:+:+  +:+    +:+          */
+/*   By: Louis Croci <louis.croci@epitech.eu>       +#+ +:+ +#+    +#++:++#++   */
+/*                                                  +#+  +#+#+#           +#+   */
+/*   Created: 2025/11/13 23:10:54 by Louis Croci    #+#   #+#+#    #+#    #+#   */
+/*   Updated: 2025/11/13 23:10:54 by Louis Croci    ###    ####     ########    */
+/*                                                                              */
+/* **************************************************************************** */
+
 /**
  * @file Page.hpp
  * @brief Classe abstraite de base pour toutes les pages de l'interface
@@ -22,6 +34,34 @@
 #include <Arduino.h>
 #include "../../screen/Display.hpp"
 #include "../../screen/TouchScreen.hpp"
+
+/**
+ * @enum PageID
+ * @brief Identifiants des pages de l'application
+ * 
+ * Enum centralisé pour toutes les pages du système.
+ * Utilisé pour la navigation entre pages via PageManager.
+ */
+enum PageID {
+    PAGE_STARTUP = 0,           ///< Page de démarrage (logo Nexus)
+    PAGE_MAIN_DISPLAY = 1,      ///< Page d'affichage principal (pH/Redox/Temp)
+    PAGE_SETTINGS = 3,          ///< Page de paramètres généraux
+    PAGE_CALIBRATION_PH = 4,    ///< Page de calibration pH
+    PAGE_CALIBRATION_REDOX = 5, ///< Page de calibration Redox
+    PAGE_ALERT = 6,             ///< Page d'alerte
+    PAGE_INFO = 7,              ///< Page d'informations
+    PAGE_CLOUD = 8,             ///< Paramètres Cloud
+    PAGE_WIFI = 9,              ///< Paramètres WiFi
+    PAGE_MQTT = 10,             ///< Paramètres MQTT
+    PAGE_PUMP = 11,             ///< Paramètres Pompe
+    PAGE_SWITCH = 12,           ///< Paramètres Interrupteurs
+    PAGE_LEVEL_PROBE = 13,      ///< Paramètres Sondes de niveaux
+    PAGE_POOL_FILL = 14,        ///< Paramètres Remplissage piscine
+    PAGE_LOCK = 15,             ///< Paramètres Verrouillage
+    PAGE_SCREEN = 16,           ///< Paramètres Écran
+    PAGE_LANGUAGE = 17,         ///< Sélection Langue
+    PAGE_RESET = 18             ///< Réinitialisation
+};
 
 /**
  * @class Page
@@ -58,6 +98,7 @@
  * @endcode
  */
 class Page {
+    
 protected:
     /** @brief Pointeur vers l'objet d'affichage partagé */
     Display* display;

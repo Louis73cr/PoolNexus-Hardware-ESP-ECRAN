@@ -1,6 +1,14 @@
-/*
- * PageManager.cpp - Implémentation du gestionnaire de pages
- */
+/* **************************************************************************** */
+/*                                                                              */
+/*                                                  ::::    :::     ::::::::    */
+/*   PageManager.cpp                                :+:+:   :+:    :+:    :+:   */
+/*                                                  :+:+:+  +:+    +:+          */
+/*   By: Louis Croci <louis.croci@epitech.eu>       +#+ +:+ +#+    +#++:++#++   */
+/*                                                  +#+  +#+#+#           +#+   */
+/*   Created: 2025/11/13 23:10:43 by Louis Croci    #+#   #+#+#    #+#    #+#   */
+/*   Updated: 2025/11/13 23:10:43 by Louis Croci    ###    ####     ########    */
+/*                                                                              */
+/* **************************************************************************** */
 
 #include "PageManager.hpp"
 
@@ -111,8 +119,12 @@ void PageManager::update() {
     if (touch->getTouchPoint(x, y)) {
         int nextPageId = currentPage->handleTouch(x, y);
         
+        // Si la page retourne -2, faire un retour arrière
+        if (nextPageId == -2) {
+            goBack();
+        }
         // Si la page retourne un ID valide, change de page
-        if (nextPageId >= 0 && nextPageId != currentPageId) {
+        else if (nextPageId >= 0 && nextPageId != currentPageId) {
             setCurrentPage(nextPageId);
         }
         

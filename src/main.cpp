@@ -12,10 +12,12 @@
  * - Interface tactile I2C pour la navigation
  * 
  * Pages disponibles:
- * - HomePage: Page d'accueil avec informations système
- * - MenuPage: Menu de navigation principal
- * - SettingsPage: Configuration de l'application
- * - StatusPage: Statut système en temps réel
+ * - StartupPage: Page de démarrage avec logo Nexus
+ * - MainDisplayPage: Affichage principal pH/Redox/Température
+ * - CalibrationPage: Calibration pH et Redox
+ * - AlertPage: Gestion des alertes
+ * - InfoPage: Informations système
+ * - Pages de paramètres: Cloud, WiFi, MQTT, Pompe, etc.
  * 
  * Matériel:
  * - MCU: ESP32-S3 (Dual-core Xtensa LX7, 240MHz)
@@ -24,31 +26,25 @@
  * - RAM: 8MB PSRAM intégrée
  * 
  * @author PoolNexus Hardware Team
- * @version 1.0
+ * @version 2.0
  * @date 2025
  */
 
 #include <Arduino.h>
-#include "screen/Display.h"
-#include "screen/TouchScreen.h"
-#include "page/utils/PageManager.h"
-#include "page/HomePage.h"
-#include "page/MenuPage.h"
-#include "page/SettingsPage.h"
-#include "page/StatusPage.h"
+#include "screen/Display.hpp"
+#include "screen/TouchScreen.hpp"
+#include "page/utils/PageManager.hpp"
+#include "page/SettingsPage.hpp"
+#include "page/StartupPage.hpp"
+#include "page/MainDisplayPage.hpp"
+#include "page/CalibrationPage.hpp"
+#include "page/AlertInfoPages.hpp"
+#include "page/SpecializedSettingsPages.hpp"
 
 // ========== DÉFINITION DES IDs DE PAGES ==========
 
-/** @brief Identifiant de la page d'accueil */
-#define PAGE_HOME      0
-/** @brief Identifiant de la page de menu */
-#define PAGE_MENU      1
-/** @brief Identifiant de la page de paramètres */
-#define PAGE_SETTINGS  2
-/** @brief Identifiant de la page de statut */
-#define PAGE_STATUS    3
 /** @brief Nombre total de pages dans l'application */
-#define NUM_PAGES      4
+#define NUM_PAGES 19
 
 // ========== INSTANCES DES CLASSES ==========
 
@@ -63,17 +59,35 @@ PageManager pageManager(&screen, &touch, NUM_PAGES);
 
 // ========== Instances des pages ==========
 
-/** @brief Instance de la page d'accueil */
-HomePage homePage(&screen, &touch);
+/** @brief Page de démarrage */
+StartupPage startupPage(&screen, &touch);
 
-/** @brief Instance de la page de menu */
-MenuPage menuPage(&screen, &touch);
+/** @brief Page d'affichage principal */
+MainDisplayPage mainDisplayPage(&screen, &touch);
 
-/** @brief Instance de la page de paramètres */
+/** @brief Page de paramètres généraux */
 SettingsPage settingsPage(&screen, &touch);
 
-/** @brief Instance de la page de statut système */
-StatusPage statusPage(&screen, &touch);
+/** @brief Pages de calibration */
+CalibrationPHPage calibrationPHPage(&screen, &touch);
+CalibrationRedoxPage calibrationRedoxPage(&screen, &touch);
+
+/** @brief Pages d'alerte et info */
+AlertPage alertPage(&screen, &touch);
+InfoPage infoPage(&screen, &touch);
+
+/** @brief Pages de paramètres spécialisés */
+CloudPage cloudPage(&screen, &touch);
+WiFiPage wifiPage(&screen, &touch);
+MQTTPage mqttPage(&screen, &touch);
+PumpPage pumpPage(&screen, &touch);
+SwitchPage switchPage(&screen, &touch);
+LevelProbePage levelProbePage(&screen, &touch);
+PoolFillPage poolFillPage(&screen, &touch);
+LockPage lockPage(&screen, &touch);
+ScreenPage screenPage(&screen, &touch);
+LanguagePage languagePage(&screen, &touch);
+ResetPage resetPage(&screen, &touch);
 
 /**
  * @brief Fonction d'initialisation exécutée une seule fois au démarrage
@@ -128,14 +142,31 @@ void setup() {
   
   // ========== [3/3] Enregistrement des pages ==========
   Serial.println("\n[3/3] Initialisation du gestionnaire de pages...");
-  pageManager.registerPage(PAGE_HOME, &homePage);
-  pageManager.registerPage(PAGE_MENU, &menuPage);
-  pageManager.registerPage(PAGE_SETTINGS, &settingsPage);
-  pageManager.registerPage(PAGE_STATUS, &statusPage);
   
-  // Démarre sur la page d'accueil
-  pageManager.setCurrentPage(PAGE_HOME);
+  // Enregistrer toutes les pages selon l'énumération PageID
+  pageManager.registerPage(PAGE_STARTUP, &startupPage);
+  pageManager.registerPage(PAGE_MAIN_DISPLAY, &mainDisplayPage);
+  pageManager.registerPage(PAGE_SETTINGS, &settingsPage);
+  pageManager.registerPage(PAGE_CALIBRATION_PH, &calibrationPHPage);
+  pageManager.registerPage(PAGE_CALIBRATION_REDOX, &calibrationRedoxPage);
+  pageManager.registerPage(PAGE_ALERT, &alertPage);
+  pageManager.registerPage(PAGE_INFO, &infoPage);
+  pageManager.registerPage(PAGE_CLOUD, &cloudPage);
+  pageManager.registerPage(PAGE_WIFI, &wifiPage);
+  pageManager.registerPage(PAGE_MQTT, &mqttPage);
+  pageManager.registerPage(PAGE_PUMP, &pumpPage);
+  pageManager.registerPage(PAGE_SWITCH, &switchPage);
+  pageManager.registerPage(PAGE_LEVEL_PROBE, &levelProbePage);
+  pageManager.registerPage(PAGE_POOL_FILL, &poolFillPage);
+  pageManager.registerPage(PAGE_LOCK, &lockPage);
+  pageManager.registerPage(PAGE_SCREEN, &screenPage);
+  pageManager.registerPage(PAGE_LANGUAGE, &languagePage);
+  pageManager.registerPage(PAGE_RESET, &resetPage);
+  
+  // Démarre sur la page de démarrage (logo Nexus)
+  pageManager.setCurrentPage(PAGE_STARTUP);
   Serial.println("✓ Gestionnaire de pages initialisé");
+  Serial.printf("✓ %d pages enregistrées\n", NUM_PAGES);
   
   Serial.println("\n=== Initialisation terminée ===");
   Serial.println("Système de navigation activé!\n");

@@ -3,6 +3,7 @@
  */
 
 #include "Display.hpp"
+#include <Fonts/FreeSans9pt7b.h>
 
 Display::Display() : bus(nullptr), display(nullptr), canvas(nullptr), currentRotation(0) {
     bus = new Arduino_ESP32QSPI(PIN_CS, PIN_SCK, PIN_MOSI, PIN_MISO, PIN_DC, PIN_RST);
@@ -20,6 +21,10 @@ bool Display::begin() {
     if (!canvas) return false;
     
     canvas->begin();
+    
+    // Appliquer la police FreeSans 9pt (compromis taille/lisibilité)
+    canvas->setFont(&FreeSans9pt7b);
+    canvas->setTextSize(1);
     
     // Active le rétro-éclairage
     pinMode(PIN_BL, OUTPUT);
@@ -64,6 +69,14 @@ void Display::drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t colo
 
 void Display::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
     canvas->fillRect(x, y, w, h, color);
+}
+
+void Display::drawRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r, uint16_t color) {
+    canvas->drawRoundRect(x, y, w, h, r, color);
+}
+
+void Display::fillRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r, uint16_t color) {
+    canvas->fillRoundRect(x, y, w, h, r, color);
 }
 
 void Display::drawCircle(int16_t x, int16_t y, int16_t r, uint16_t color) {

@@ -201,6 +201,28 @@ public:
     void fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color);
     
     /**
+     * @brief Dessine le contour d'un rectangle aux coins arrondis
+     * @param x Position X du coin supérieur gauche
+     * @param y Position Y du coin supérieur gauche
+     * @param w Largeur du rectangle
+     * @param h Hauteur du rectangle
+     * @param r Rayon des coins arrondis
+     * @param color Couleur du contour RGB565
+     */
+    void drawRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r, uint16_t color);
+    
+    /**
+     * @brief Dessine un rectangle plein aux coins arrondis
+     * @param x Position X du coin supérieur gauche
+     * @param y Position Y du coin supérieur gauche
+     * @param w Largeur du rectangle
+     * @param h Hauteur du rectangle
+     * @param r Rayon des coins arrondis
+     * @param color Couleur de remplissage RGB565
+     */
+    void fillRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r, uint16_t color);
+    
+    /**
      * @brief Dessine le contour d'un cercle
      * @param x Position X du centre
      * @param y Position Y du centre
