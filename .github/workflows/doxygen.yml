@@ -21,11 +21,10 @@ jobs:
       run: |
         cd src
         /usr/bin/doxygen Doxyfile
+        ls -R ../docs
 
     - name: Déployer la documentation sur GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./docs/html
-        publish_branch: gh-pages  # Explicite la branche cible
-        force_orphan: true        # Crée une branche orpheline si elle n'existe pas
