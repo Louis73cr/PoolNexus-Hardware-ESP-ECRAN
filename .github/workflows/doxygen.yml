@@ -27,3 +27,5 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./docs/html
+        publish_branch: gh-pages  # Explicite la branche cible
+        force_orphan: true        # Crée une branche orpheline si elle n'existe pas
