@@ -1,128 +1,139 @@
-/*
- * PageManager.cpp - Implémentation du gestionnaire de pages
+/* **************************************************************************** */
+/*                                                                              */
+/*                                                  ::::    :::     ::::::::    */
+/*   PageManager.cpp                                :+:+:   :+:    :+:    :+:   */
+/*                                                  :+:+:+  +:+    +:+          */
+/*   By: Louis Croci <louis.croci@epitech.eu>       +#+ +:+ +#+    +#++:++#++   */
+/*                                                  +#+  +#+#+#           +#+   */
+/*   Created: 2025/11/14 21:25:29 by Louis Croci    #+#   #+#+#    #+#    #+#   */
+/*   Updated: 2025/11/14 21:25:29 by Louis Croci    ###    ####     ########    */
+/*                                                                              */
+/* **************************************************************************** */
+/**
+ * @file PageManager.cpp
+ * @brief Implementation of page manager for LVGL UI.
  */
 
 #include "PageManager.hpp"
+#include "../MainDisplayPageLVGL.hpp"
+#include "../SettingsPageLVGL.hpp"
+#include "../CalibrationPHPageLVGL.hpp"
+#include "../CalibrationRedoxPageLVGL.hpp"
+#include "../CloudPageLVGL.hpp"
+#include "../WiFiPageLVGL.hpp"
+#include "../MQTTPageLVGL.hpp"
+#include "../PumpPageLVGL.hpp"
+#include "../SwitchPageLVGL.hpp"
+#include "../LevelProbePageLVGL.hpp"
+#include "../PoolFillPageLVGL.hpp"
+#include "../LockPageLVGL.hpp"
+#include "../ScreenPageLVGL.hpp"
+#include "../LanguagePageLVGL.hpp"
+#include "../ResetPageLVGL.hpp"
+#include "LVGLPageBase.hpp"
 
-PageManager::PageManager(Display* display, TouchScreen* touch, int maxPages)
-    : display(display)
-    , touch(touch)
-    , numPages(maxPages)
-    , currentPageId(-1)
-    , historySize(0)
-{
-    // Allocation du tableau de pages
-    pages = new Page*[maxPages];
-    for (int i = 0; i < maxPages; i++) {
-        pages[i] = nullptr;
+#include <Arduino.h>
+
+PageManager::PageManager() {
+  for (auto &p : pages) p = nullptr;
+
+  pages[static_cast<size_t>(PageID::PAGE_MAIN_DISPLAY)] = new MainDisplayPageLVGL(this);
+  pages[static_cast<size_t>(PageID::PAGE_SETTINGS)] = new SettingsPageLVGL(this);
+  pages[static_cast<size_t>(PageID::PAGE_CALIBRATION_PH)] = new CalibrationPHPageLVGL(this);
+  pages[static_cast<size_t>(PageID::PAGE_CALIBRATION_REDOX)] = new CalibrationRedoxPageLVGL(this);
+  pages[static_cast<size_t>(PageID::PAGE_CLOUD)] = new CloudPageLVGL(this);
+  pages[static_cast<size_t>(PageID::PAGE_WIFI)] = new WiFiPageLVGL(this);
+  pages[static_cast<size_t>(PageID::PAGE_MQTT)] = new MQTTPageLVGL(this);
+  pages[static_cast<size_t>(PageID::PAGE_PUMP)] = new PumpPageLVGL(this);
+  pages[static_cast<size_t>(PageID::PAGE_SWITCH)] = new SwitchPageLVGL(this);
+  pages[static_cast<size_t>(PageID::PAGE_LEVEL_PROBE)] = new LevelProbePageLVGL(this);
+  pages[static_cast<size_t>(PageID::PAGE_POOL_FILL)] = new PoolFillPageLVGL(this);
+  pages[static_cast<size_t>(PageID::PAGE_LOCK)] = new LockPageLVGL(this);
+  pages[static_cast<size_t>(PageID::PAGE_SCREEN)] = new ScreenPageLVGL(this);
+  pages[static_cast<size_t>(PageID::PAGE_LANGUAGE)] = new LanguagePageLVGL(this);
+  pages[static_cast<size_t>(PageID::PAGE_RESET)] = new ResetPageLVGL(this);
+  
+  setupPageManagerForPages();
+}
+
+void PageManager::setupPageManagerForPages() {
+  for (auto* page : pages) {
+    if (page) {
+      setupPageManagerForPage(page);
     }
+  }
+}
+
+void PageManager::setupPageManagerForPage(Page* page) {
+  // Essayer de caster vers LVGLPageBase
+  // Comme toutes les pages héritent de Page, on doit vérifier si elles héritent aussi de LVGLPageBase
+  // On utilise un cast multiple pour accéder à LVGLPageBase
+  // Note: Cette approche fonctionne car les pages héritent de Page et LVGLPageBase (héritage multiple)
+  
+  // Pour chaque page qui hérite de LVGLPageBase, on peut utiliser un cast
+  // Mais comme on ne peut pas utiliser dynamic_cast facilement, on va passer le PageManager
+  // dans les constructeurs des pages qui en ont besoin
+  
+  // Pour l'instant, on va utiliser une approche différente : passer this dans les constructeurs
+  // des pages qui héritent de LVGLPageBase
 }
 
 PageManager::~PageManager() {
-    // Libération de la mémoire
-    if (pages) {
-        delete[] pages;
+  if (getCurrentPage()) {
+    getCurrentPage()->onHide();
+  }
+
+  for (auto* page : pages) {
+    delete page;
+  }
+}
+
+void PageManager::begin() {
+    setupPageManagerForPages();
+    
+    size_t idx = static_cast<size_t>(currentPageId);
+
+    if (pages[idx]) {
+        pages[idx]->onEnter();
+        pages[idx]->create();
+        pages[idx]->show();
+        currentPageShown = true;
     }
 }
 
-void PageManager::registerPage(int pageId, Page* page) {
-    if (pageId >= 0 && pageId < numPages) {
-        pages[pageId] = page;
-        Serial.printf("Page %d enregistrée\n", pageId);
-    } else {
-        Serial.printf("Erreur: ID de page invalide: %d\n", pageId);
-    }
+void PageManager::loop() {
+    // loop() ne doit PAS appeler show() à chaque fois
+    // show() est appelé uniquement lors de la création ou du changement de page
+    // Cette méthode peut être utilisée pour d'autres mises à jour périodiques si nécessaire
 }
 
-void PageManager::setCurrentPage(int pageId, bool addToHistory) {
-    if (pageId < 0 || pageId >= numPages || pages[pageId] == nullptr) {
-        Serial.printf("Erreur: Page %d invalide ou non enregistrée\n", pageId);
+
+void PageManager::navigateToPage(PageID pageId) {
+    size_t oldIdx = static_cast<size_t>(currentPageId);
+    size_t newIdx = static_cast<size_t>(pageId);
+
+    if (newIdx >= pages.size() || !pages[newIdx]) {
+        Serial.printf("[PageManager] ERROR: Invalid page ID %d or page is NULL\n", (int)pageId);
         return;
     }
-    
-    // Appelle onExit() de la page actuelle
-    if (currentPageId >= 0 && pages[currentPageId] != nullptr) {
-        pages[currentPageId]->onExit();
-    }
-    
-    // Ajoute à l'historique
-    if (addToHistory && currentPageId >= 0) {
-        if (historySize < MAX_PAGE_HISTORY) {
-            pageHistory[historySize++] = currentPageId;
-        } else {
-            // Décale l'historique si plein
-            for (int i = 0; i < MAX_PAGE_HISTORY - 1; i++) {
-                pageHistory[i] = pageHistory[i + 1];
-            }
-            pageHistory[MAX_PAGE_HISTORY - 1] = currentPageId;
-        }
-    }
-    
-    // Change de page
+
+    Serial.printf("[PageManager] Navigating from page %d to page %d\n", (int)currentPageId, (int)pageId);
+
+    if (pages[oldIdx]) pages[oldIdx]->onExit();
+
     currentPageId = pageId;
+    currentPageShown = false;
+
+    pages[newIdx]->onEnter();
+    pages[newIdx]->create();
+    pages[newIdx]->show();
+    currentPageShown = true;
     
-    // Appelle onEnter() de la nouvelle page
-    if (pages[currentPageId] != nullptr) {
-        pages[currentPageId]->onEnter();
-        Serial.printf("Transition vers page %d\n", pageId);
-    }
+    Serial.printf("[PageManager] Navigation complete to page %d\n", (int)pageId);
 }
 
-bool PageManager::goBack() {
-    if (historySize > 0) {
-        // Récupère la page précédente
-        int previousPageId = pageHistory[--historySize];
-        
-        // Change de page sans ajouter à l'historique
-        setCurrentPage(previousPageId, false);
-        
-        Serial.printf("Retour vers page %d\n", previousPageId);
-        return true;
-    }
-    
-    Serial.println("Pas d'historique pour retour");
-    return false;
-}
-
-void PageManager::clearHistory() {
-    historySize = 0;
-    Serial.println("Historique effacé");
-}
-
-void PageManager::update() {
-    if (currentPageId < 0 || pages[currentPageId] == nullptr) {
-        return;
-    }
-    
-    Page* currentPage = pages[currentPageId];
-    
-    // 1. Dessine la page si nécessaire
-    if (currentPage->getNeedsRedraw()) {
-        currentPage->draw();
-        display->flush();
-        currentPage->clearRedrawFlag();
-    }
-    
-    // 2. Met à jour la logique de la page
-    currentPage->update();
-    
-    // 3. Gère les événements tactiles
-    uint16_t x, y;
-    if (touch->getTouchPoint(x, y)) {
-        int nextPageId = currentPage->handleTouch(x, y);
-        
-        // Si la page retourne un ID valide, change de page
-        if (nextPageId >= 0 && nextPageId != currentPageId) {
-            setCurrentPage(nextPageId);
-        }
-        
-        // Anti-rebond: attend que l'écran soit relâché
-        touch->waitForRelease(1000);
-    }
-}
-
-void PageManager::forceRedraw() {
-    if (currentPageId >= 0 && pages[currentPageId] != nullptr) {
-        pages[currentPageId]->setNeedsRedraw();
-    }
+Page* PageManager::getCurrentPage() const {
+  size_t idx = static_cast<size_t>(currentPageId);
+  if (idx < pages.size()) return pages[idx];
+  return nullptr;
 }
